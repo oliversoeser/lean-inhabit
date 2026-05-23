@@ -1,10 +1,10 @@
-name = "lean-inhab"
+name = "inhabit"
 version = "0.1.0"
-defaultTargets = ["lean-inhab"]
+defaultTargets = ["inhabit"]
 
 [[lean_lib]]
-name = "LeanInhab"
+name = "Inhabit"
 
 [[lean_exe]]
-name = "lean-inhab"
+name = "inhabit"
 root = "Main"

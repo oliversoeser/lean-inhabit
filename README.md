@@ -1,1 +1,1 @@
-# lean-inhab
+# inhabit
