@@ -1,0 +1,10 @@
+name = "lean-inhab"
+version = "0.1.0"
+defaultTargets = ["lean-inhab"]
+
+[[lean_lib]]
+name = "LeanInhab"
+
+[[lean_exe]]
+name = "lean-inhab"
+root = "Main"
