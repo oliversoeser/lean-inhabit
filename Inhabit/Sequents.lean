@@ -17,8 +17,8 @@ partial def seqsolve (goal : MVarId) : TacticM Bool :=
       let _ ← seqsolve newGoal
       return true
 
-    matchConstInduct goalType.getAppFn
-      (fun _ => throwTacticEx `seqsolve goal "target is not an inductive datatype")
+    return ← matchConstInduct goalType.getAppFn
+      (fun _ => return false)
       fun ival us => do
         for ctor in ival.ctors do
           try
@@ -27,10 +27,10 @@ partial def seqsolve (goal : MVarId) : TacticM Bool :=
             newGoals.forM $ fun newGoal => do
               if not $ ← seqsolve newGoal then
                 failure
+            return true
           catch _ =>
             pure ()
-
-    return false
+        return false
 
 elab "seqsolve" : tactic =>
   withMainContext do
