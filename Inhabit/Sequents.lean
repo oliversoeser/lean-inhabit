@@ -4,12 +4,15 @@ open Lean Elab.Tactic Meta
 
 partial def seqsolve (goal : MVarId) : TacticM Bool :=
   goal.withContext do
+    /- Axiom -/
     if ← goal.assumptionCore then
       return true
 
+    /- L⊥ -/
     if ← goal.contradictionCore {} then
       return true
 
+    /- R→ -/
     let goalType ← goal.getType'
     if let .forallE _ _ _ _ := goalType then
       let (_, newGoal) ← goal.intro .anonymous
@@ -17,20 +20,31 @@ partial def seqsolve (goal : MVarId) : TacticM Bool :=
       let _ ← seqsolve newGoal
       return true
 
-    return ← matchConstInduct goalType.getAppFn
+    /- R∧, R∨ -/
+    if ← matchConstInduct goalType.getAppFn
       (fun _ => return false)
       fun ival us => do
         for ctor in ival.ctors do
           try
-            let newGoals ← goal.apply (Lean.mkConst ctor us) {}
+            let newGoals ← goal.apply (mkConst ctor us) {}
             replaceMainGoal newGoals
             newGoals.forM $ fun newGoal => do
               if not $ ← seqsolve newGoal then
                 failure
-            return true
+            return true /- TODO: This doesn't actually return -/
           catch _ =>
             pure ()
         return false
+    then
+      return true
+
+    /- L→ -/
+
+    /- L∧ -/
+
+    /- L∨ -/
+
+    return false
 
 elab "seqsolve" : tactic =>
   withMainContext do
