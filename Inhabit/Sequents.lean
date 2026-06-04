@@ -21,8 +21,10 @@ partial def seqsolve (goal : MVarId) : TacticM Bool :=
       return true
 
     /- R∧, R∨ -/
-    if ← matchConstInduct goalType.getAppFn
-      (fun _ => return false)
+    /- TODO: Match on ∧, ∨ -/
+    /- TODO: Success flag -/
+    matchConstInduct goalType.getAppFn
+      (fun _ => return)
       fun ival us => do
         for ctor in ival.ctors do
           try
@@ -31,18 +33,14 @@ partial def seqsolve (goal : MVarId) : TacticM Bool :=
             newGoals.forM $ fun newGoal => do
               if not $ ← seqsolve newGoal then
                 failure
-            return true /- TODO: This doesn't actually return -/
           catch _ =>
             pure ()
-        return false
-    then
-      return true
+        return
 
     /- L→ -/
 
-    /- L∧ -/
-
-    /- L∨ -/
+    /- L∧, L∨ -/
+    /- TODO: Apply cases where possible -/
 
     return false
 
@@ -52,17 +50,23 @@ elab "seqsolve" : tactic =>
     goals.forM $ fun goal => do
       let _ ← seqsolve goal
 
-example {φ : Prop} : φ → φ := by
+variable {φ ψ : Prop}
+
+example : φ → φ := by
   seqsolve
 
-example {φ : Prop} (h : φ) : φ := by
+example (h : φ) : φ := by
   seqsolve
 
-example {φ : Prop} : False → φ := by
+example : False → φ := by
   seqsolve
 
-example {φ : Prop} : (φ → φ) ∧ (φ → φ) := by
+example : (φ → φ) ∧ (φ → φ) := by
   seqsolve
 
-example {φ : Prop} : False ∨ (φ → φ) := by
+example : False ∨ (φ → φ) := by
+  seqsolve
+
+example (h : φ ∧ ψ) : ψ := by
+  cases h
   seqsolve
