@@ -1,18 +1,28 @@
+namespace PropLogic
+
 -- Syntax
-inductive PropLang where
-  | Var (name : String)
-  | Not (a : PropLang)
-  | And (a b : PropLang)
-  | Or (a b : PropLang)
+abbrev Atom := String
+
+inductive Formula where
+  | var (a : Atom)
+  | not (a : Formula)
+  | and (a b : Formula)
+  | or (a b : Formula)
+
+inductive Literal where
+  | pos (a : Atom)
+  | neg (a : Atom)
+
+abbrev SClause := List Literal
 
 -- Semantics
-abbrev PropInterp := String → Bool
+abbrev Interpret := Atom → Bool
 
-def List.interp (l : List String) : PropInterp := l.contains
+def List.interp (l : List String) : Interpret := l.contains
 
-def prop_eval (f : PropLang) (i : PropInterp) : Bool :=
+def prop_eval (f : Formula) (i : Interpret) : Bool :=
   match f with
-  | .Var name => i name
-  | .Not a => not (prop_eval a i)
-  | .And a b => and (prop_eval a i) (prop_eval b i)
-  | .Or a b => or (prop_eval a i) (prop_eval b i)
+  | .var name => i name
+  | .not a => not (prop_eval a i)
+  | .and a b => and (prop_eval a i) (prop_eval b i)
+  | .or a b => or (prop_eval a i) (prop_eval b i)
