@@ -86,3 +86,9 @@ def contra_inf (conc : Formula) : Inference := ⟨[.btm], conc⟩
 theorem contra_sound (conc : Formula) : (contra_inf conc).sound := by
   intros i h
   simp [contra_inf] at h
+
+def modpon_inf (pre con : Formula) : Inference := ⟨[pre, .imp pre con], con⟩
+
+theorem modpon_sound (pre con : Formula) : (modpon_inf pre con).sound := by
+  intros i h
+  simp_all [modpon_inf]
