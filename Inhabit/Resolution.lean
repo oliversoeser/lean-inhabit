@@ -11,8 +11,6 @@ inductive Formula where
   | or (l r : Formula)
   | and (l r : Formula)
   | imp (l r : Formula)
-  | xor (l r : Formula)
-  | iff (l r : Formula)
 
 -- Clause Syntax
 inductive Literal where
@@ -38,16 +36,18 @@ def StdClause.toFormula (sc : StdClause) : Formula :=
   | .cons h t => .or h.toFormula (toFormula t)
 
 -- Semantics
-def Interp := Atom → Bool
+def Interp := Atom → Prop
 
-def Formula.eval (i : Interp) (f : Formula) : Bool :=
+def Formula.eval (i : Interp) (f : Formula) : Prop :=
   match f with
-  | top => true
-  | btm => false
+  | top => True
+  | btm => False
   | atom a => i a
-  | not f => .not (f.eval i)
-  | or l r => .or (l.eval i) (r.eval i)
-  | and l r => .and (l.eval i) (r.eval i)
-  | imp l r => .or (.not (l.eval i)) (r.eval i)
-  | xor l r => l.eval i != r.eval i
-  | iff l r => l.eval i == r.eval i
+  | not f => ¬(f.eval i)
+  | or l r => (l.eval i) ∨ (r.eval i)
+  | and l r => (l.eval i) ∧ (r.eval i)
+  | imp l r => (l.eval i) → (r.eval i)
+
+-- Logical Consequence
+def Formula.entails (f g : Formula) : Prop :=
+  ∀ i : Interp, f.eval i → g.eval i
