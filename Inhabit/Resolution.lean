@@ -30,6 +30,11 @@ def GenClause.toFormula (gc : GenClause) : Formula :=
   | .nil => .btm
   | .cons h t => .or h (toFormula t)
 
+def GenClause.toDualFormula (gc : GenClause) : Formula :=
+  match gc with
+  | .nil => .top
+  | .cons h t => .and h (toFormula t)
+
 def StdClause.toFormula (sc : StdClause) : Formula :=
   match sc with
   | .nil => .btm
@@ -57,3 +62,14 @@ def Formula.equiv (f g : Formula) : Prop :=
 
 infix:60 " ⊨ " => fun l r => Formula.entails l r
 infix:60 " ≃ " => fun l r => Formula.equiv l r
+
+-- Inferences
+structure Inference where (pres : GenClause) (conc : Formula)
+
+def Inference.sound (inf : Inference) : Prop :=
+  inf.pres.toDualFormula ⊨ inf.conc
+
+def InferSys := List Inference
+
+def InferSys.concs (is : InferSys) : List Formula :=
+  is.map Inference.conc
