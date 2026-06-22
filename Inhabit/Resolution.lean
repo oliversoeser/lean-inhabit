@@ -51,23 +51,3 @@ def Formula.eval (i : Interp) (f : Formula) : Bool :=
   | imp l r => .or (.not (l.eval i)) (r.eval i)
   | xor l r => l.eval i != r.eval i
   | iff l r => l.eval i == r.eval i
-
--- Substitution
-def Subst := Atom → Formula
-
-def Formula.subst (σ : Subst) (f : Formula) :=
-  match f with
-  | top => top
-  | btm => btm
-  | atom a => σ a
-  | not f => not (f.subst σ)
-  | or l r => or (l.subst σ) (r.subst σ)
-  | and l r => and (l.subst σ) (r.subst σ)
-  | imp l r => imp (l.subst σ) (r.subst σ)
-  | xor l r => xor (l.subst σ) (r.subst σ)
-  | iff l r => iff (l.subst σ) (r.subst σ)
-
-def Literal.subst (σ : Subst) (lit : Literal) :=
-  match lit with
-  | pos a => σ a
-  | neg a => .not (σ a)
