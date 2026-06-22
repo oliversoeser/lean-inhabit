@@ -1,9 +1,7 @@
 -- Syntax
-structure Atom where (sym : String)
+structure Term where (sym : String) (ts : List Term)
 
-inductive Literal where
-  | pos (a : Atom)
-  | neg (a : Atom)
+structure Atom where (sym : String) (ts : List Term)
 
 inductive Formula where
   | top
@@ -16,8 +14,28 @@ inductive Formula where
   | xor (l r : Formula)
   | iff (l r : Formula)
 
+-- Clause Syntax
+inductive Literal where
+  | pos (a : Atom)
+  | neg (a : Atom)
+
 def GenClause := List Formula
 def StdClause := List Literal
+
+def Literal.toFormula (lit : Literal) : Formula :=
+  match lit with
+  | pos a => .atom a
+  | neg a => .not (.atom a)
+
+def GenClause.toFormula (gc : GenClause) : Formula :=
+  match gc with
+  | .nil => .btm
+  | .cons h t => .or h (toFormula t)
+
+def StdClause.toFormula (sc : StdClause) : Formula :=
+  match sc with
+  | .nil => .btm
+  | .cons h t => .or h.toFormula (toFormula t)
 
 -- Semantics
 def Interp := Atom → Bool
@@ -33,17 +51,6 @@ def Formula.eval (i : Interp) (f : Formula) : Bool :=
   | imp l r => .or (.not (l.eval i)) (r.eval i)
   | xor l r => l.eval i != r.eval i
   | iff l r => l.eval i == r.eval i
-
-def Literal.eval (i : Interp) (lit : Literal) : Bool :=
-  match lit with
-  | pos a => i a
-  | neg a => not (i a)
-
-def GenClause.eval (i : Interp) (gc : GenClause) : Bool :=
-  (gc.map (Formula.eval i)).foldl .or false
-
-def StdClause.eval (i : Interp) (sc : StdClause) : Bool :=
-  (sc.map (Literal.eval i)).foldl .or false
 
 -- Substitution
 def Subst := Atom → Formula
