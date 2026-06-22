@@ -20,12 +20,12 @@ inductive Literal where
 def GenClause := List Formula
 def StdClause := List Literal
 
-def Literal.toFormula (lit : Literal) : Formula :=
+@[simp] def Literal.toFormula (lit : Literal) : Formula :=
   match lit with
   | pos a => .atom a
   | neg a => .not (.atom a)
 
-def GenClause.toFormula (gc : GenClause) : Formula :=
+@[simp] def GenClause.toFormula (gc : GenClause) : Formula :=
   match gc with
   | .nil => .btm
   | .cons h t => .or h (toFormula t)
