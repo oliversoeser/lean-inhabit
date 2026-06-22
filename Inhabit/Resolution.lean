@@ -30,12 +30,12 @@ def GenClause.toFormula (gc : GenClause) : Formula :=
   | .nil => .btm
   | .cons h t => .or h (toFormula t)
 
-def GenClause.toDualFormula (gc : GenClause) : Formula :=
+@[simp] def GenClause.toDualFormula (gc : GenClause) : Formula :=
   match gc with
   | .nil => .top
-  | .cons h t => .and h (toFormula t)
+  | .cons h t => .and h (toDualFormula t)
 
-def StdClause.toFormula (sc : StdClause) : Formula :=
+@[simp] def StdClause.toFormula (sc : StdClause) : Formula :=
   match sc with
   | .nil => .btm
   | .cons h t => .or h.toFormula (toFormula t)
@@ -43,7 +43,7 @@ def StdClause.toFormula (sc : StdClause) : Formula :=
 -- Semantics
 def Interp := Atom → Prop
 
-def Formula.eval (i : Interp) (f : Formula) : Prop :=
+@[simp] def Formula.eval (i : Interp) (f : Formula) : Prop :=
   match f with
   | top => True
   | btm => False
@@ -73,3 +73,16 @@ def InferSys := List Inference
 
 def InferSys.concs (is : InferSys) : List Formula :=
   is.map Inference.conc
+
+-- Examples
+def trivial_inf : Inference := ⟨[], .top⟩
+
+theorem trivial_sound : trivial_inf.sound := by
+  intros i h
+  trivial
+
+def contra_inf (conc : Formula) : Inference := ⟨[.btm], conc⟩
+
+theorem contra_sound (conc : Formula) : (contra_inf conc).sound := by
+  intros i h
+  simp [contra_inf] at h
