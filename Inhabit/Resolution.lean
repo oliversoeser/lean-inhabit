@@ -51,3 +51,9 @@ def Formula.eval (i : Interp) (f : Formula) : Prop :=
 -- Logical Consequence
 def Formula.entails (f g : Formula) : Prop :=
   ∀ i : Interp, f.eval i → g.eval i
+
+def Formula.equiv (f g : Formula) : Prop :=
+  ∀ i : Interp, f.eval i ↔ g.eval i
+
+infix:60 " ⊨ " => fun l r => Formula.entails l r
+infix:60 " ≃ " => fun l r => Formula.equiv l r
