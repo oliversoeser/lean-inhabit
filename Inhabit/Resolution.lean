@@ -12,34 +12,6 @@ inductive Formula where
   | and (l r : Formula)
   | imp (l r : Formula)
 
--- Clause Syntax
-inductive Literal where
-  | pos (a : Atom)
-  | neg (a : Atom)
-
-def GenClause := List Formula
-def StdClause := List Literal
-
-@[simp] def Literal.toFormula (lit : Literal) : Formula :=
-  match lit with
-  | pos a => .atom a
-  | neg a => .not (.atom a)
-
-@[simp] def GenClause.toFormula (gc : GenClause) : Formula :=
-  match gc with
-  | .nil => .btm
-  | .cons h t => .or h (toFormula t)
-
-@[simp] def GenClause.toDualFormula (gc : GenClause) : Formula :=
-  match gc with
-  | .nil => .top
-  | .cons h t => .and h (toDualFormula t)
-
-@[simp] def StdClause.toFormula (sc : StdClause) : Formula :=
-  match sc with
-  | .nil => .btm
-  | .cons h t => .or h.toFormula (toFormula t)
-
 -- Semantics
 def Interp := Atom → Prop
 
@@ -63,32 +35,37 @@ def Formula.equiv (f g : Formula) : Prop :=
 infix:60 " ⊨ " => fun l r => Formula.entails l r
 infix:60 " ≃ " => fun l r => Formula.equiv l r
 
+-- Substitution
+inductive VarFormula where
+  | top
+  | btm
+  | atom (a : Atom)
+  | not (f : VarFormula)
+  | or (l r : VarFormula)
+  | and (l r : VarFormula)
+  | imp (l r : VarFormula)
+  | var (sym : String)
+
+def FormSub := String → Formula
+
+@[simp] def FormSub.apply (σ : FormSub) (f : VarFormula) : Formula :=
+  match f with
+  | .top => .top
+  | .btm => .btm
+  | .atom a => .atom a
+  | .not f => .not (σ.apply f)
+  | .or l r => .or (σ.apply l) (σ.apply r)
+  | .and l r => .and (σ.apply l) (σ.apply r)
+  | .imp l r => .imp (σ.apply l) (σ.apply r)
+  | .var sym => σ sym
+
 -- Inferences
-structure Inference where (pres : GenClause) (conc : Formula)
+structure Inference where (pres : List VarFormula) (conc : VarFormula)
 
 def Inference.sound (inf : Inference) : Prop :=
-  inf.pres.toDualFormula ⊨ inf.conc
+  ∀ σ : FormSub, (inf.pres.foldl (λ f vf => .and f (σ.apply vf)) .top) ⊨ σ.apply inf.conc
 
 def InferSys := List Inference
 
-def InferSys.concs (is : InferSys) : List Formula :=
+def InferSys.concs (is : InferSys) : List VarFormula :=
   is.map Inference.conc
-
--- Examples
-def trivial_inf : Inference := ⟨[], .top⟩
-
-theorem trivial_sound : trivial_inf.sound := by
-  intros i h
-  trivial
-
-def contra_inf (conc : Formula) : Inference := ⟨[.btm], conc⟩
-
-theorem contra_sound (conc : Formula) : (contra_inf conc).sound := by
-  intros i h
-  simp [contra_inf] at h
-
-def modpon_inf (pre con : Formula) : Inference := ⟨[pre, .imp pre con], con⟩
-
-theorem modpon_sound (pre con : Formula) : (modpon_inf pre con).sound := by
-  intros i h
-  simp_all [modpon_inf]
